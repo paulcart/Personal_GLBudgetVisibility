@@ -16,9 +16,9 @@ pageextension 50300 "CoA Budget" extends "Chart of Accounts"
                 Editable = false;
                 StyleExpr = RemainingBudgetStyle;
             }
-            field(Prediction; EndOfMonthPrediction)
+            field(Prediction; EndOfMonthPredictionAmount)
             {
-                CaptionClass = PredictionCaption;
+                CaptionClass = GetPredictionCaption;
                 ApplicationArea = All;
                 BlankZero = true;
                 Editable = false;
@@ -30,100 +30,106 @@ pageextension 50300 "CoA Budget" extends "Chart of Accounts"
     var
         RemainingBudget: Decimal;
         RemainingBudgetStyle: Text;
-        EndOfMonthPrediction: Decimal;
+        EndOfMonthPredictionAmount: Decimal;
 
         RemainingBudgetEndOfMonth: Decimal;
         EndOfMonthPredictionStyle: Text;
-        CurrDateFilter: Text;
-        DaysInPeriod: Integer;
-        CurrentDay: Integer;
-        PeriodStartDate: Date;
-        PeriodEndDate: Date;
-        PredictionCaption: Text;
+    // CurrDateFilter: Text;
+    // DaysInPeriod: Integer;
+    // CurrentDay: Integer;
+    // PeriodStartDate: Date;
+    // PeriodEndDate: Date;
+    // PredictionCaption: Text;
 
     trigger OnAfterGetRecord()
     begin
-        CalculateDaysThroughPeriod();
-        CalcEndOfMonthPrediction();
+        //CalculateDaysThroughPeriod();
+        //CalcEndOfMonthPrediction();
+        EndOfMonthPredictionAmount := EndOfMonthPrediction;
         CalcRemainingBudget();
     end;
 
-    local procedure CalculateDaysThroughPeriod()
-    var
-        Date: Record Date;
-    begin
-        if CurrDateFilter = GetFilter("Date Filter") then begin
-            exit;
-        end else begin
-            CurrDateFilter := GetFilter("Date Filter");
-        end;
+    // local procedure CalculateDaysThroughPeriod()
+    // var
+    //     Date: Record Date;
+    // begin
+    //     if CurrDateFilter = GetFilter("Date Filter") then begin
+    //         exit;
+    //     end else begin
+    //         CurrDateFilter := GetFilter("Date Filter");
+    //     end;
 
-        if CurrDateFilter = '' then begin
-            PeriodStartDate := 0D;
-            PeriodEndDate := 0D;
-            DaysInPeriod := 0;
-            CurrentDay := 0;
-            PredictionCaption := 'No Prediction';
-            exit;
-        end;
+    //     if CurrDateFilter = '' then begin
+    //         PeriodStartDate := 0D;
+    //         PeriodEndDate := 0D;
+    //         DaysInPeriod := 0;
+    //         CurrentDay := 0;
+    //         PredictionCaption := 'No Prediction';
+    //         exit;
+    //     end;
 
-        Date.SetRange("Period Type", Date."Period Type"::Date);
-        Date.SetFilter("Period Start", GetFilter("Date Filter"));
-        date.FindFirst();
-        PeriodStartDate := date."Period Start";
-        date.FindLast();
-        PeriodEndDate := date."Period Start";
+    //     Date.SetRange("Period Type", Date."Period Type"::Date);
+    //     Date.SetFilter("Period Start", GetFilter("Date Filter"));
+    //     date.FindFirst();
+    //     PeriodStartDate := date."Period Start";
+    //     date.FindLast();
+    //     PeriodEndDate := date."Period Start";
 
-        if (PeriodStartDate > WorkDate()) or (PeriodEndDate < WorkDate()) then begin
-            PeriodStartDate := 0D;
-            PeriodEndDate := 0D;
-            DaysInPeriod := 0;
-            CurrentDay := 0;
-            PredictionCaption := 'No Prediction';
-            exit;
-        end;
+    //     if (PeriodStartDate > WorkDate()) or (PeriodEndDate < WorkDate()) then begin
+    //         PeriodStartDate := 0D;
+    //         PeriodEndDate := 0D;
+    //         DaysInPeriod := 0;
+    //         CurrentDay := 0;
+    //         PredictionCaption := 'No Prediction';
+    //         exit;
+    //     end;
 
-        CurrentDay := WorkDate() - PeriodStartDate;
-        DaysInPeriod := PeriodEndDate - PeriodStartDate;
-        PredictionCaption := StrSubstNo('Prediction (Day %1 of %2)', CurrentDay, DaysInPeriod);
+    //     CurrentDay := WorkDate() - PeriodStartDate;
+    //     DaysInPeriod := PeriodEndDate - PeriodStartDate;
+    //     PredictionCaption := StrSubstNo('Prediction (Day %1 of %2)', CurrentDay, DaysInPeriod);
 
-    end;
+    // end;
 
-    local procedure CalcEndOfMonthPrediction()
-    var
-        NetChangePerDay: Decimal;
-    begin
+    // local procedure CalcEndOfMonthPrediction()
+    // var
+    //     NetChangePerDay: Decimal;
+    // begin
 
-        if (CurrentDay = 0) or ("Account Type" <> "Account Type"::Posting) then begin
-            EndOfMonthPrediction := 0;
-        end else begin
-            case "End of Month Prediction" of
-                "End of Month Prediction"::"Current Value":
-                    begin
-                        EndOfMonthPrediction := "Net Change";
-                    end;
+    //     if (CurrentDay = 0) or ("Account Type" <> "Account Type"::Posting) then begin
+    //         EndOfMonthPrediction := 0;
+    //     end else begin
+    //         case "End of Month Prediction" of
+    //             "End of Month Prediction"::"None":
+    //                 begin
+    //                     EndOfMonthPrediction := 0;
+    //                 end;
 
-                "End of Month Prediction"::"Budgeted Amount":
-                    begin
-                        if "Net Change" > "Budgeted Amount" then begin
-                            EndOfMonthPrediction := "Net Change";
-                        end else begin
-                            EndOfMonthPrediction := "Budgeted Amount";
-                        end;
-                    end;
+    //             "End of Month Prediction"::"Current Value":
+    //                 begin
+    //                     EndOfMonthPrediction := "Net Change";
+    //                 end;
 
-                "End of Month Prediction"::"Same Amount Each Day":
-                    begin
-                        NetChangePerDay := "Net Change" / CurrentDay;
-                        EndOfMonthPrediction := NetChangePerDay * DaysInPeriod;
-                    end;
-            end;
-        end;
-    end;
+    //             "End of Month Prediction"::"Budgeted Amount":
+    //                 begin
+    //                     if "Net Change" > "Budgeted Amount" then begin
+    //                         EndOfMonthPrediction := "Net Change";
+    //                     end else begin
+    //                         EndOfMonthPrediction := "Budgeted Amount";
+    //                     end;
+    //                 end;
+
+    //             "End of Month Prediction"::"Same Amount Each Day":
+    //                 begin
+    //                     NetChangePerDay := "Net Change" / CurrentDay;
+    //                     EndOfMonthPrediction := NetChangePerDay * DaysInPeriod;
+    //                 end;
+    //         end;
+    //     end;
+    // end;
 
     local procedure CalcRemainingBudget()
     begin
-        if ("Budgeted Amount" = 0) or ("Account Type" <> "Account Type"::Posting) then begin
+        if ("Budgeted Amount" = 0) then begin// or ("Account Type" <> "Account Type"::Posting) then begin
             RemainingBudget := 0;
             RemainingBudgetStyle := 'None';
         end else begin
@@ -141,7 +147,7 @@ pageextension 50300 "CoA Budget" extends "Chart of Accounts"
             end;
 
             if RemainingBudgetEndOfMonth = 0 then begin
-                RemainingBudgetStyle := 'None';
+                EndOfMonthPredictionStyle := 'None';
             end else begin
                 if RemainingBudgetEndOfMonth < 0 then begin
                     EndOfMonthPredictionStyle := 'Unfavorable';
